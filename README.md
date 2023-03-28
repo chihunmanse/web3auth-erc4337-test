@@ -5,13 +5,11 @@
 ## Quick Start
 
 ```bash
-git clone https://github.com/shahbaz17/web3auth-core-google-demo.git
-cd web3auth-core-google-demo
+git clone https://github.com/chihunmanse/web3auth-erc4337-test
+cd web3auth-erc4337-test
 ```
 
 ## Installation
-
-Run:
 
 ```bash
 npm install
@@ -19,13 +17,6 @@ npm install
 
 ## Start
 
-Run:
-
 ```bash
 npm run start
 ```
-
-## Configure
-
-Follow https://web3auth.io/docs/custom-authentication/social-providers/google to
-create a Google application and set up Google Custom Authentication.
