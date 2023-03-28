@@ -1,60 +1,58 @@
+/** @format */
+
 import { useEffect, useState } from "react";
-import { Web3AuthCore } from "@web3auth/core";
 import {
   WALLET_ADAPTERS,
   CHAIN_NAMESPACES,
   SafeEventEmitterProvider,
 } from "@web3auth/base";
+import { Web3AuthCore } from "@web3auth/core";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import "./App.css";
-// import RPC from "./evm.web3";
-// import RPC from './evm.ethers';
-import RPC from "./solanaRPC";
+import RPC from "./evm.ethers";
+import ERC4337 from "./erc4337";
 
 const clientId =
-  "BG7vMGIhzy7whDXXJPZ-JHme9haJ3PmV1-wl9SJPGGs9Cjk5_8m682DJ-lTDmwBWJe-bEHYE_t9gw0cdboLEwR8"; // get from https://dashboard.web3auth.io
-
-// const rpcTarget =
-//   process.env.REACT_APP_QUICKNODE || "https://rpc.ankr.com/solana";
+  "BOR8MBjSVBx_5vLtd_YNqxCfB4IAwXMJUJ6Popp_2SFAb95d74HSBt5KBPdn3aj_kwR58zL-AHOLSZByWBYSkv0";
 
 function App() {
   const [web3auth, setWeb3auth] = useState<Web3AuthCore | null>(null);
   const [provider, setProvider] = useState<SafeEventEmitterProvider | null>(
     null
   );
+  const [result, setResult] = useState(<></>);
 
   useEffect(() => {
     const init = async () => {
       try {
         const web3auth = new Web3AuthCore({
-          clientId, // get from https://dashboard.web3auth.io
+          clientId,
+          web3AuthNetwork: "testnet",
           chainConfig: {
-            chainNamespace: CHAIN_NAMESPACES.SOLANA,
-            chainId: "0x3", // Please use 0x1 for Mainnet, 0x2 for Testnet, 0x3 for Devnet
-            rpcTarget: "https://api.devnet.solana.com",
-            displayName: "Solana Devnet",
-            blockExplorer: "https://explorer.solana.com/?cluster=devnet",
-            ticker: "SOL",
-            tickerName: "Solana Token",
+            chainNamespace: CHAIN_NAMESPACES.EIP155,
+            chainId: "0x13881",
+            rpcTarget: "https://rpc.ankr.com/polygon_mumbai",
+            ticker: "MATIC",
+            tickerName: "Matic",
           },
         });
 
         const openloginAdapter = new OpenloginAdapter({
           adapterSettings: {
             clientId,
-            network: "testnet",
             uxMode: "popup",
             loginConfig: {
               google: {
                 name: "Custom Google Auth Login",
-                verifier: "web3auth-core-google",
+                verifier: "google-hi",
                 typeOfLogin: "google",
                 clientId:
-                  "774338308167-q463s7kpvja16l4l0kko3nb925ikds2p.apps.googleusercontent.com", //use your app client id you got from google
+                  "62912393486-60c4pan6mnkb44rc457sk9smh79fd131.apps.googleusercontent.com", //use your app client id you got from google
               },
             },
           },
         });
+
         web3auth.configureAdapter(openloginAdapter);
         setWeb3auth(web3auth);
 
@@ -72,7 +70,9 @@ function App() {
 
   const login = async () => {
     if (!web3auth) {
-      uiConsole("web3auth not initialized yet");
+      setResult(
+        <div className="body-container">web3auth not initialized yet</div>
+      );
       return;
     }
     const web3authProvider = await web3auth.connectTo(
@@ -84,18 +84,11 @@ function App() {
     setProvider(web3authProvider);
   };
 
-  const getUserInfo = async () => {
-    if (!web3auth) {
-      uiConsole("web3auth not initialized yet");
-      return;
-    }
-    const user = await web3auth.getUserInfo();
-    uiConsole(user);
-  };
-
   const logout = async () => {
     if (!web3auth) {
-      uiConsole("web3auth not initialized yet");
+      setResult(
+        <div className="body-container">web3auth not initialized yet</div>
+      );
       return;
     }
     await web3auth.logout();
@@ -104,77 +97,175 @@ function App() {
 
   const getAccounts = async () => {
     if (!provider) {
-      uiConsole("provider not initialized yet");
+      setResult(
+        <div className="body-container">provider not initialized yet</div>
+      );
       return;
     }
     const rpc = new RPC(provider);
     const userAccount = await rpc.getAccounts();
-    uiConsole(userAccount);
+
+    setResult(<div className="body-container">{userAccount}</div>);
   };
 
-  const getBalance = async () => {
+  const mumbaiFaucet = async () => {
+    setResult(
+      <div className="body-container">
+        Contract Account에 Matic을 충전하세요.
+      </div>
+    );
+  };
+
+  const getContractAccount = async () => {
     if (!provider) {
-      uiConsole("provider not initialized yet");
+      setResult(
+        <div className="body-container">provider not initialized yet</div>
+      );
       return;
     }
-    const rpc = new RPC(provider);
-    const balance = await rpc.getBalance();
-    uiConsole(balance);
+
+    const erc4337 = new ERC4337(provider);
+    const result = await erc4337.getContractAccount();
+    setResult(<div className="body-container">{result}</div>);
   };
 
-  const signMessage = async () => {
+  const getAccountBalance = async () => {
     if (!provider) {
-      uiConsole("provider not initialized yet");
+      setResult(
+        <div className="body-container">provider not initialized yet</div>
+      );
       return;
     }
-    const rpc = new RPC(provider);
-    const result = await rpc.signMessage();
-    uiConsole(result);
+
+    const erc4337 = new ERC4337(provider);
+    const result = await erc4337.getAccountBalance();
+    setResult(<div className="body-container">{result + " Matic"}</div>);
   };
 
-  const sendTransaction = async () => {
+  const getBundlerAddress = async () => {
     if (!provider) {
-      uiConsole("provider not initialized yet");
+      setResult(
+        <div className="body-container">provider not initialized yet</div>
+      );
       return;
     }
-    const rpc = new RPC(provider);
-    const result = await rpc.sendTransaction();
-    uiConsole(result);
+
+    const erc4337 = new ERC4337(provider);
+    const result = await erc4337.getBundlerAddress();
+    setResult(<div className="body-container">{result}</div>);
   };
 
-  function uiConsole(...args: any[]): void {
-    const el = document.querySelector("#console>p");
-    if (el) {
-      el.innerHTML = JSON.stringify(args || {}, null, 2);
+  const transfer = async () => {
+    if (!provider) {
+      setResult(
+        <div className="body-container">provider not initialized yet</div>
+      );
     }
-  }
+
+    setResult(
+      <div className="body-container">
+        <div className="input-container">
+          <div className="input-title">To</div>
+          <div className="input-text">
+            0xA552b00A6f79e7e40eFf56DC6B8C79bE1a333E60
+          </div>
+        </div>
+        <div className="input-container">
+          <div className="input-title">Matic</div>
+          <div className="input-text">0.1</div>
+        </div>
+        <div className="input-button-container">
+          <button onClick={transferWithPaymaster} className="card">
+            Transfer
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const transferWithPaymaster = async () => {
+    if (!provider) {
+      setResult(<div>provider not initialized yet</div>);
+      return;
+    }
+
+    const erc4337 = new ERC4337(provider);
+    const result = await erc4337.transferWithPaymaster();
+    setResult(
+      <div className="body-container">
+        <div className="input-container">
+          <div className="input-title">Tx Hash</div>
+          <div className="input-text">{result.txHash}</div>
+        </div>
+        <div className="input-container">
+          <div className="input-title">UserOp Hash</div>
+          <div className="input-text">{result.userOpHash}</div>
+        </div>
+        <div className="input-container">
+          <div className="input-title">Sender</div>
+          <div className="input-text">{result.sender}</div>
+        </div>
+        <div className="input-container">
+          <div className="input-title">Paymaster</div>
+          <div className="input-text">{result.paymaster}</div>
+        </div>
+        <div className="input-container">
+          <div className="input-title">Nonce</div>
+          <div className="input-text">{result.nonce}</div>
+        </div>
+        <div className="input-container">
+          <div className="input-title">Success</div>
+          <div className="input-text">{result.success.toString()}</div>
+        </div>
+        <div className="input-container">
+          <div className="input-title">Actual Gas Cost</div>
+          <div className="input-text">{result.actualGasCost}</div>
+        </div>
+        <div className="input-container">
+          <div className="input-title">Actual Gas Used</div>
+          <div className="input-text">{result.actualGasUsed}</div>
+        </div>
+      </div>
+    );
+  };
 
   const loginView = (
     <>
       <div className="flex-container">
         <div>
-          <button onClick={getUserInfo} className="card">
-            Get User Info
-          </button>
-        </div>
-        <div>
           <button onClick={getAccounts} className="card">
-            Get Accounts
+            Get Owner
           </button>
         </div>
         <div>
-          <button onClick={getBalance} className="card">
-            Get Balance
+          <button onClick={getContractAccount} className="card">
+            Get Contract Account
           </button>
         </div>
         <div>
-          <button onClick={signMessage} className="card">
-            Sign Message
+          <button className="card" onClick={mumbaiFaucet}>
+            <a
+              href="https://mumbaifaucet.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Mumbai Faucet
+            </a>
           </button>
         </div>
         <div>
-          <button onClick={sendTransaction} className="card">
-            Send Transaction
+          <button onClick={getAccountBalance} className="card">
+            Get Account Balance
+          </button>
+        </div>
+        <div>
+          <button onClick={getBundlerAddress} className="card">
+            Get Bundler Address
+          </button>
+        </div>
+        <div>
+          <button onClick={transfer} className="card">
+            Transfer With Paymaster
           </button>
         </div>
         <div>
@@ -184,9 +275,7 @@ function App() {
         </div>
       </div>
 
-      <div id="console" style={{ whiteSpace: "pre-line" }}>
-        <p style={{ whiteSpace: "pre-line" }}></p>
-      </div>
+      {result}
     </>
   );
 
@@ -198,18 +287,13 @@ function App() {
 
   return (
     <div className="container">
-      <h1 className="title">
-        <a target="_blank" href="http://web3auth.io/" rel="noreferrer">
-          Web3Auth
-        </a>{" "}
-        & ReactJS Example for Google Login
-      </h1>
+      <h1 className="title">Web3Auth & ERC4337 Example</h1>
 
       <div className="grid">{provider ? loginView : logoutView}</div>
 
       <footer className="footer">
         <a
-          href="https://github.com/shahbaz17/web3auth-core-google-demo"
+          href="https://github.com/chihunmanse/web3auth-erc4337-test"
           target="_blank"
           rel="noopener noreferrer"
         >

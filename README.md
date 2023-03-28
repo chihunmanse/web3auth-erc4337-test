@@ -1,4 +1,6 @@
-# Web3Auth Core x Google Login Demo Application
+<!-- @format -->
+
+# Web3Auth Google Login With ERC4337 Paymaster
 
 ## Quick Start
 
