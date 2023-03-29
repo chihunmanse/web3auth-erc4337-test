@@ -2,20 +2,20 @@
 
 # Web3Auth Google Login With ERC4337 Paymaster
 
-## Quick Start
+## 1.
 
 ```bash
 git clone https://github.com/chihunmanse/web3auth-erc4337-test
 cd web3auth-erc4337-test
 ```
 
-## Installation
+## 2.
 
 ```bash
 npm install
 ```
 
-## Start
+## 3.
 
 ```bash
 npm run start
